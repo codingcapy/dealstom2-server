@@ -8,7 +8,7 @@
     "tsc": "tsc",
     "start:prod": "node build/app.js",
     "install-server": "npm install && npm run tsc",
-    "start-server": "node app.js"
+    "start-server": "node build/app.js"
   },
   "author": "",
   "license": "ISC",
