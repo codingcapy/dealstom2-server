@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { pool, db, users } from "./connect";
+import { pool, db, users, budgets, addresses } from "./connect";
 import { eq, and } from "drizzle-orm";
 
 const saltRounds = 6
@@ -12,6 +12,8 @@ export interface IDecodedUser {
 
 export async function validateUser(req: Request, res: Response) {
     const { email, password } = req.body;
+    console.log(email)
+    console.log(password)
     try {
         const queryResult = await db.select().from(users).where(eq(users.email, email));
         const user = queryResult[0];
@@ -95,3 +97,41 @@ export async function getUser(req: Request, res: Response) {
         res.status(500).json({ success: false, message: "Error getting user" })
     }
 }
+
+export async function createBudget(req: Request, res: Response) {
+    const { userId, value } = req.body
+    try {
+        await db.insert(budgets).values({ user_id:userId, value });
+        res.status(201).send({ success: true, message: "Budget created successfully!" })
+    }
+    catch (err) {
+        console.log(err)
+        res.status(400).json({ success: false, message: "Error creating budget" })
+    }
+};
+
+export async function getBudget(req: Request, res: Response) {
+    try {
+        const userId = parseInt(req.params.userId)
+        const user = await db.select().from(users).where(eq(users.user_id, userId));
+        //@ts-ignore
+        const budget = await db.select().from(budgets).where(eq(budgets.user_id, user[0].user_id));
+        res.status(200).json(budget[0]);
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({ success: false, message: "Error getting budget" })
+    }
+}
+
+export async function createAddress(req: Request, res: Response) {
+    const { userId, street, city, province, postalcode } = req.body
+    try {
+        await db.insert(addresses).values({ user_id:userId, street, city, province, postalcode });
+        res.status(201).send({ success: true, message: "Address created successfully!" })
+    }
+    catch (err) {
+        console.log(err)
+        res.status(400).json({ success: false, message: "Error creating address" })
+    }
+};
